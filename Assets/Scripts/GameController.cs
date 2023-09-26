@@ -32,17 +32,26 @@ public class GameController : MonoBehaviour
     public GameObject objPrefab;
     public GameObject crackShotPrefab;
     List<Object> options;
-    bool objectHeld = false;
-    Object heldObject = null;
+    public bool objectHeld = false;
+    public Object heldObject = null;
+    public Vector2Int mouseGridPos = Vector2Int.zero;
     public Dictionary<Vector2Int,Object> grid = new Dictionary<Vector2Int, Object>();
     public Dictionary<Vector2Int,Tile> tiles = new Dictionary<Vector2Int, Tile>();
     public int points;
     public List<int> earnedPoints;
-    Vector2Int[] directions = new Vector2Int[4]{
+    [HideInInspector]
+    public Vector2Int[] directions = new Vector2Int[4]{
         Vector2Int.up,
         Vector2Int.right,
         Vector2Int.down,
         Vector2Int.left
+    };
+    [HideInInspector]
+    public Vector2Int[] diagonalDirections = new Vector2Int[4]{
+        new Vector2Int(1,1),
+        new Vector2Int(1,-1),
+        new Vector2Int(-1,-1),
+        new Vector2Int(-1,1)
     };
     [HideInInspector]
     public Vector2Int[] allDirections = new Vector2Int[8]{
@@ -209,13 +218,13 @@ public class GameController : MonoBehaviour
             if(level > 3){
                 additional = 3;
             }
+            if(level > 4){
+                additional = 4;
+            }
             for(var j = generatorRange.x;j<generatorRange.y+1+additional;j++){
                 int _numCopies = howManyCopiesInBag;
-                if(j >= 7){
-                    _numCopies = howManyCopiesInBag-1;
-                }
                 for(var k = 0; k < _numCopies; k++){
-                    tetrisBag.Add(new Piece((j == 2 ? 0: j),i));
+                    tetrisBag.Add(new Piece(j,i));
                 }
             }
         }
@@ -281,7 +290,30 @@ public class GameController : MonoBehaviour
             pieces.Add(nextPiece);
             tetrisBag.Remove(nextPiece);
             options[i].number = nextPiece.number;//Random.Range(generatorRange.x,generatorRange.y+1);
+            if(options[i].number == 7){
+                options[i].number = 0;
+            }
+            if(options[i].number == 8){
+                options[i].number = Random.Range(1,6);
+                options[i].lockDirection = Random.Range(0,3);
+                options[i].howUnlocked = Random.Range(1,4);
+            }
+            if(options[i].number == 9){
+                options[i].number = Random.Range(1,5);
+                options[i].diagonal = true;
+            }
+            //SCREAM OPTIONS AAAH
             options[i].colorNumber = nextPiece.color;//Random.Range(0,numColors);
+            
+            /*if(Random.value < 0.25f){
+                options[i].locked = true;
+            }
+            if(Random.value < 0.15f){
+                options[i].diagonal = true;
+            }
+            if(Random.value < 0.15f){
+                options[i].number = 0;
+            }*/
         }
         if(inTutorial && tutorialStage == (int)TutorialStage.Popping){
             options[1].number = 2;
@@ -516,13 +548,13 @@ public class GameController : MonoBehaviour
         score.color = black;
         highScoreDisplay.color = black;
         if(unlockAppear){
-            score.text = levelUnlockDesc[level-1]+"\n"+score.text;
+            score.text = score.text+"\n"+levelUnlockDesc[level-1];
         }
         if(inTutorial){
             //score.text = "<size=4>"+tutorialTexts[tutorialStage]+"</size><line-height=110%>\n"+score.text;
             string _tut_text = tutorialTexts[tutorialStage];
             _tut_text = _tut_text.Replace('|','\n');
-            score.text = "<size=3.5>"+_tut_text+"</size><line-height=25%>\n ";
+            score.text += "<line-height=75%>\n<size=3.5>"+_tut_text+"</size><line-height=25%>\n ";
         }else{
             if(earnedPoints.Count > 0){
                 //score.text+="\n";
@@ -544,11 +576,11 @@ public class GameController : MonoBehaviour
         }
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         
-        Vector2Int gridPos = new Vector2Int(Mathf.FloorToInt(mousePos.x+0.5f),Mathf.FloorToInt(mousePos.y+0.5f));
+        mouseGridPos = new Vector2Int(Mathf.FloorToInt(mousePos.x+0.5f),Mathf.FloorToInt(mousePos.y+0.5f));
         if(waitForPopping == false && gameOver == false){
             if(objectHeld){
                 if(Input.GetMouseButtonDown(0)){
-                    if(gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= gridSize.x || gridPos.y >= gridSize.y){
+                    if(mouseGridPos.x < 0 || mouseGridPos.y < 0 || mouseGridPos.x >= gridSize.x || mouseGridPos.y >= gridSize.y){
                         if(inTutorial && tutorialStage == (int)TutorialStage.Placing){
                             tutorialStage--;
                             PlayerPrefs.SetInt("tutorial",tutorialStage);
@@ -557,7 +589,7 @@ public class GameController : MonoBehaviour
                         objectHeld = false;
                         heldObject.depth = 10;
                         heldObject = null;
-                    }else if(grid.ContainsKey(gridPos)){
+                    }else if(grid.ContainsKey(mouseGridPos)){
                         if(inTutorial && tutorialStage == (int)TutorialStage.Placing){
                             tutorialStage--;
                             PlayerPrefs.SetInt("tutorial",tutorialStage);
@@ -587,11 +619,11 @@ public class GameController : MonoBehaviour
                         Services.AudioManager.PlaySound(Services.AudioManager.select);
                         turns.Add(SaveBoardToString());
 
-                        heldObject.transform.position = (Vector2)gridPos;
+                        heldObject.transform.position = (Vector2)mouseGridPos;
                         heldObject.isSelected = false;
                         heldObject.isOption = false;
                         heldObject.depth = 0;
-                        AddToGrid(gridPos,heldObject);
+                        AddToGrid(mouseGridPos,heldObject);
                         objectHeld = false;
                         heldObject = null;
                         playedSoFar++;
@@ -599,8 +631,8 @@ public class GameController : MonoBehaviour
                     }
                     
                 }else if(Input.GetMouseButtonUp(0)){
-                    if(gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= gridSize.x || gridPos.y >= gridSize.y){
-                    }else if(grid.ContainsKey(gridPos)){
+                    if(mouseGridPos.x < 0 || mouseGridPos.y < 0 || mouseGridPos.x >= gridSize.x || mouseGridPos.y >= gridSize.y){
+                    }else if(grid.ContainsKey(mouseGridPos)){
                     }else{
                         if(inTutorial && tutorialStage == (int)TutorialStage.Placing){
                             tutorialStage++;
@@ -620,11 +652,11 @@ public class GameController : MonoBehaviour
                         }
                         Services.AudioManager.PlaySound(Services.AudioManager.select);
                         turns.Add(SaveBoardToString());
-                        heldObject.transform.position = (Vector2)gridPos;
+                        heldObject.transform.position = (Vector2)mouseGridPos;
                         heldObject.isSelected = false;
                         heldObject.isOption = false;
                         heldObject.depth = 0;
-                        AddToGrid(gridPos,heldObject);
+                        AddToGrid(mouseGridPos,heldObject);
                         objectHeld = false;
                         heldObject = null;
                         playedSoFar++;
@@ -666,10 +698,10 @@ public class GameController : MonoBehaviour
                 continue;
             }
             if(o.isSelected){
-                Vector3 targetPosition = (Vector2)gridPos;
+                Vector3 targetPosition = (Vector2)mouseGridPos;
                 targetPosition += Vector3.right*Mathf.Sin(Time.time*5f)*0.02f;
                 targetPosition+=Vector3.up*0.1f;
-                if(grid.ContainsKey(gridPos)){
+                if(grid.ContainsKey(mouseGridPos)){
                     targetPosition+=Vector3.up*0.45f;
                     o.transform.localScale += ((Vector3.one*0.95f)-o.transform.localScale)*0.5f*(Time.deltaTime/(1f/60f));
                 }else{
@@ -727,6 +759,8 @@ public class GameController : MonoBehaviour
         }
     }
     void AddToGrid(Vector2Int pos, Object o, bool chains = true){
+        
+
         unlockAppear = false;
         o.position = pos;
         o.depth = 0;
@@ -753,7 +787,9 @@ public class GameController : MonoBehaviour
             same_color.Clear();
             CheckGridForSameColor(pos);
             if(same_color.Count > 0){
-                foreach(Vector2Int _pos in same_color){
+                for(int i = 0; i < 1; i++){
+                    Vector2Int _pos = same_color[0];
+                //foreach(Vector2Int _pos in same_color){
                     if(toBeDeleted.Contains(_pos)){
                         continue;
                     }
@@ -776,10 +812,14 @@ public class GameController : MonoBehaviour
                         
                     }
                     didGridChange = true;
-                    pointsThisLevel+=1;//obj.number;
+                    int worth = 1;
+                    if(obj.locked || obj.number == 0 || obj.diagonal){
+                        worth+=1;
+                    }
+                    pointsThisLevel+=worth;//obj.number;
                     toBeDeleted.Add(_pos);
                     GameObject popObj = GameObject.Instantiate(scorePopUpPrefab,grid[_pos].transform.position,Quaternion.identity,transform);
-                    popObj.GetComponent<ScorePopUp>().number = 1;//obj.number;
+                    popObj.GetComponent<ScorePopUp>().number = worth;//obj.number;
                     popObj.GetComponent<ScorePopUp>().multiplier = (earnedPoints.Count+1);
                     //sum+=next;
                     /*obj.number-=1;
@@ -794,7 +834,9 @@ public class GameController : MonoBehaviour
             }
         }
         foreach(Vector2Int pos in toBeDeleted){
-            foreach(Vector2Int dir in directions){
+            Vector2Int[] _directions = (grid[pos].diagonal ? diagonalDirections : directions);
+            for(int i = 0; i < _directions.Length;i++){
+                Vector2Int dir = _directions[i];
                 Vector2Int n_pos = pos+dir;
                 if(grid.ContainsKey(n_pos) == false){
                     continue;
@@ -802,7 +844,10 @@ public class GameController : MonoBehaviour
                 if(toBeDeleted.Contains(n_pos)){
                     continue;
                 }
-                if(grid[pos].colorNumber == grid[n_pos].colorNumber){
+                if((grid[pos].colorNumber == grid[n_pos].colorNumber || (grid[n_pos].number == 0 || grid[n_pos].number == 1)) && grid[n_pos].locked == false){
+                    continue;
+                }
+                if(grid[pos].colorNumber == grid[n_pos].colorNumber && grid[n_pos].locked && grid[n_pos].CanConnectToLocked(i)){
                     continue;
                 }
                 //SCREAMSCRAEM
@@ -817,8 +862,13 @@ public class GameController : MonoBehaviour
                 if(dir.y != 0){
                     crackObj.transform.localEulerAngles = new Vector3(0,0,90f);
                 }
-                grid[n_pos].number-=1;
-                if(grid[n_pos].number < 1){
+                bool justLocked = grid[n_pos].locked;
+                if(grid[n_pos].locked && grid[n_pos].CanConnectToLocked(i) == false){
+                    grid[n_pos].lockDirection = -1;
+                }else{
+                    grid[n_pos].number-=1;
+                }
+                if(justLocked == false && grid[n_pos].number < 1){
                     RemoveObject(grid[n_pos]);
                 }else{
                     Boop boopcheck = grid[n_pos].GetComponent<Boop>();
@@ -827,6 +877,10 @@ public class GameController : MonoBehaviour
                     }else{
                         grid[n_pos].gameObject.AddComponent<Boop>();
                         grid[n_pos].gameObject.GetComponent<Boop>().depth = earnedPoints.Count;
+                        if(grid[n_pos].lockDirection < 0){
+                            grid[n_pos].gameObject.GetComponent<Boop>().unlocking = true;
+                        }
+                        
                     }
                 }
             }
@@ -836,6 +890,7 @@ public class GameController : MonoBehaviour
                 Destroy(boop);
             }
             grid[pos].gameObject.AddComponent<WinAndDestroy>();
+            grid[pos].isPopping = true;
             grid[pos].gameObject.GetComponent<WinAndDestroy>().depth = earnedPoints.Count;
             RemoveObject(grid[pos]);
             if(inTutorial && tutorialStage == (int)TutorialStage.Popping){
@@ -909,9 +964,38 @@ public class GameController : MonoBehaviour
     void CheckGridForSameColor(Vector2Int pos){
         same_color.Add(pos);
         int color_number = grid[pos].colorNumber;
+        Vector2Int[] _directions = (grid[pos].diagonal ? diagonalDirections : directions);
         for(var i = 0; i < 4; i++){
-            Vector2Int n_pos = pos+directions[i];
+            if(grid[pos].CanConnectOut(i) == false){
+                continue;
+            }
+            Vector2Int n_pos = pos+_directions[i];
+            switch(i){
+                case 0:
+                    if(tiles[pos].upWall){
+                        continue;
+                    }
+                    break;
+                case 1:
+                    if(tiles[pos].rightWall){
+                        continue;
+                    }
+                    break;
+                case 2:
+                    if(tiles[pos].downWall){
+                        continue;
+                    }
+                    break;
+                case 3:
+                    if(tiles[pos].leftWall){
+                        continue;
+                    }
+                    break;
+            }
             if(grid.ContainsKey(n_pos)){
+                if(grid[n_pos].CanConnectToLocked(i) == false){
+                    continue;
+                }
                 if(same_color.Contains(n_pos)){
                     continue;
                 }
@@ -934,7 +1018,7 @@ public class GameController : MonoBehaviour
                     s+="__";
                     continue;
                 }
-                s+=grid[pos].colorNumber.ToString()+grid[pos].number.ToString();
+                s+=grid[pos].colorNumber.ToString()+grid[pos].number.ToString()+(grid[pos].locked ? grid[pos].lockDirection : 5).ToString()+grid[pos].howUnlocked.ToString()+(grid[pos].diagonal ? "1" : "0");
             }
             s+="\n";
         }
@@ -948,7 +1032,7 @@ public class GameController : MonoBehaviour
                 continue;
             }
             if(options[i].isOption){
-                s+=options[i].colorNumber.ToString()+options[i].number.ToString();
+                s+=options[i].colorNumber.ToString()+options[i].number.ToString()+(options[i].locked ? options[i].lockDirection : 5).ToString()+options[i].howUnlocked.ToString()+(options[i].diagonal ? "1" : "0");
             }else{
                 s+="__";
             }
@@ -993,12 +1077,18 @@ public class GameController : MonoBehaviour
                 }
                 int color = int.Parse(pieces[x][0].ToString());
                 int number = int.Parse(pieces[x][1].ToString());
+                int locked = int.Parse(pieces[x][2].ToString());
+                int howUnlocked = int.Parse(pieces[x][3].ToString());
+                int diagonal = int.Parse(pieces[x][4].ToString());
                 Vector2Int pos = new Vector2Int(x,y-1);
                 GameObject obj = GameObject.Instantiate(objPrefab,transform.position,Quaternion.identity,transform);
                 Object o = obj.GetComponent<Object>();
                 obj.AddComponent<ExpandAndRemove>();
                 o.number = number;//Random.Range(generatorRange.x,generatorRange.y+1);
                 o.colorNumber = color;//Random.Range(0,numColors);
+                o.lockDirection = (locked == 5 ? -1 : locked);
+                o.howUnlocked = howUnlocked;
+                o.diagonal = (diagonal == 0 ? false : true);
                 
                 if(is_options){
                     o.transform.position = OptionPlace(x);
@@ -1026,6 +1116,9 @@ public class GameController : MonoBehaviour
         playedSoFar = int.Parse(lines[bagLineIndex+1]);
         timePlayed = float.Parse(lines[bagLineIndex+2]);
         level = int.Parse(lines[bagLineIndex+3]);
+    }
+    public int OppositeDirection(int _dir){
+        return (_dir+2+4)%4;
     }
     
 }

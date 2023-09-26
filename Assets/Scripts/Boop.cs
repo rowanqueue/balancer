@@ -9,6 +9,7 @@ public class Boop : MonoBehaviour
     float scale;
     float bigTime;
     public int depth = 0;
+    public bool unlocking = false;
     // Start is called before the first frame update
     void Awake()
     {

@@ -40,7 +40,7 @@ public class SettingsMenu : MonoBehaviour
         }
         Vector3 _pos = cameraPos;
         if(active){
-            _pos+=Vector3.up*1.1f;
+            _pos+=Vector3.up*1.75f;
         }
         Camera.main.transform.position+=(_pos-Camera.main.transform.position)*(0.2f*Time.deltaTime/(1/60f));
         float _scale = scale;

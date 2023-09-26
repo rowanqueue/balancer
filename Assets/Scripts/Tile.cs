@@ -43,11 +43,18 @@ public class Tile : MonoBehaviour
         int colorNumber = -1;
         if(Services.GameController.grid.ContainsKey(position)){
             colorNumber = Services.GameController.grid[position].colorNumber;
+            if(Services.GameController.grid[position].locked){
+                colorNumber = -1;
+            }
         }
         int[] numbers = new int[8]{-1,-1,-1,-1,-1,-1,-1,-1};
         for(int i = 0; i < Services.GameController.allDirections.Length;i++){
             if(Services.GameController.grid.ContainsKey(position+Services.GameController.allDirections[i])){
                 numbers[i] = Services.GameController.grid[position+Services.GameController.allDirections[i]].colorNumber;
+                if(Services.GameController.grid[position+Services.GameController.allDirections[i]].locked){
+                    numbers[i] = -1;
+                }
+                numbers[i] = -1;
             }
         }
         Color topColor = Services.GameController.black;
@@ -128,12 +135,8 @@ public class Tile : MonoBehaviour
                 top.Width -= 0.25f;
             }
         }
-        if(Services.GameController.grid.ContainsKey(position)){
-            if(Services.GameController.grid.ContainsKey(position+Vector2Int.up)){
-                if(Services.GameController.grid[position].colorNumber == Services.GameController.grid[position+Vector2Int.up].colorNumber){
-                    topColor = Services.GameController.clear;
-                }
-            }
+        if(numbers[0] != -1 && numbers[0] == colorNumber){
+            topColor = Services.GameController.clear;
         }
         if(upWall){
             topColor = Services.GameController.white;
@@ -152,15 +155,11 @@ public class Tile : MonoBehaviour
                 right.Height -= 0.25f;
             }
         }
-        if(Services.GameController.grid.ContainsKey(position)){
-            if(Services.GameController.grid.ContainsKey(position+Vector2Int.right)){
-                if(Services.GameController.grid[position].colorNumber == Services.GameController.grid[position+Vector2Int.right].colorNumber){
-                    rightColor = Services.GameController.clear;
-                }
-            }
+        if(numbers[2] != -1 && numbers[2] == colorNumber){
+            rightColor = Services.GameController.clear;
         }
         if(rightWall){
-            rightColor = Services.GameController.white;
+            rightColor = Services.GameController.black;
         }
         //BOTTOM
         if(blColor == Services.GameController.clear && (numbers[6] != -1 && numbers[6] == numbers[5] && numbers[6] == colorNumber) == false){
@@ -176,13 +175,8 @@ public class Tile : MonoBehaviour
                 bottom.Width -= 0.25f;
             }
         }
-        if(Services.GameController.grid.ContainsKey(position)){
-            if(Services.GameController.grid.ContainsKey(position+Vector2Int.down)){
-                if(Services.GameController.grid[position].colorNumber == Services.GameController.grid[position+Vector2Int.down].colorNumber){
-                    bottomColor = Services.GameController.clear;
-                }
-                
-            }
+        if(numbers[4] != -1 && numbers[4] == colorNumber){
+            bottomColor = Services.GameController.clear;
         }
         if(downWall){
             bottomColor = Services.GameController.white;
@@ -201,15 +195,11 @@ public class Tile : MonoBehaviour
                 left.Height -= 0.25f;
             }
         }
-        if(Services.GameController.grid.ContainsKey(position)){
-            if(Services.GameController.grid.ContainsKey(position+Vector2Int.left)){
-                if(Services.GameController.grid[position].colorNumber == Services.GameController.grid[position+Vector2Int.left].colorNumber){
-                    leftColor = Services.GameController.clear;
-                }
-            }
+        if(numbers[6] != -1 && numbers[6] == colorNumber){
+            leftColor = Services.GameController.clear;
         }
         if(leftWall){
-            leftColor = Services.GameController.white;
+            leftColor = Services.GameController.black;
         }
         /*int upColor = -1;
         if(hasUp && Services.GameController.grid.ContainsKey(position)){

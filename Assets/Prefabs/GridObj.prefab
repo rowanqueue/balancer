@@ -54,6 +54,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 993a2fd0b3369bd48948cf6ab35262bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rightWall: 0
+  upWall: 0
   top: {fileID: 9221561436649704202}
   topRight: {fileID: 3014915615650924566}
   right: {fileID: 835068776542383836}
@@ -63,8 +65,6 @@ MonoBehaviour:
   left: {fileID: 692650840189355931}
   topLeft: {fileID: 7711057645633841246}
   position: {x: 0, y: 0}
-  rightLine: {fileID: 2137688355509883470}
-  upLine: {fileID: 535173222107052618}
 --- !u!1 &2289736959611217942
 GameObject:
   m_ObjectHideFlags: 0
