@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Shapes;
+using MoreMountains.NiceVibrations;
 
 public class RestartButton : MonoBehaviour
 {
@@ -33,6 +34,7 @@ public class RestartButton : MonoBehaviour
                 Services.GameController.Restart();
                 clicked = true;
                 Services.AudioManager.PlaySound(Services.AudioManager.select);
+                MMVibrationManager.Haptic (HapticTypes.MediumImpact);
             }
         }
         float _scale = scale;

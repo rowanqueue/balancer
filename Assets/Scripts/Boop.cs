@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using MoreMountains.NiceVibrations;
 
 public class Boop : MonoBehaviour
 {
@@ -26,6 +27,7 @@ public class Boop : MonoBehaviour
                 getBigger = false;
                 bigTime = Time.time;
                 Services.AudioManager.PlaySound(Services.AudioManager.crack,depth);
+                MMVibrationManager.Haptic (HapticTypes.LightImpact);
             }
         }else{
             if(Time.time > bigTime+0.00f){

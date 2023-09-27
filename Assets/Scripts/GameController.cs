@@ -618,6 +618,7 @@ public class GameController : MonoBehaviour
                             PlayerPrefs.SetInt("tutorial",tutorialStage);
                         }
                         Services.AudioManager.PlaySound(Services.AudioManager.select);
+                        MMVibrationManager.Haptic (HapticTypes.MediumImpact);
                         turns.Add(SaveBoardToString());
 
                         heldObject.transform.position = (Vector2)mouseGridPos;
@@ -652,6 +653,7 @@ public class GameController : MonoBehaviour
                             PlayerPrefs.SetInt("tutorial",tutorialStage);
                         }
                         Services.AudioManager.PlaySound(Services.AudioManager.select);
+                        MMVibrationManager.Haptic (HapticTypes.MediumImpact);
                         turns.Add(SaveBoardToString());
                         heldObject.transform.position = (Vector2)mouseGridPos;
                         heldObject.isSelected = false;
@@ -679,6 +681,7 @@ public class GameController : MonoBehaviour
                             }
                             obj.isSelected = true;
                             Services.AudioManager.PlaySound(Services.AudioManager.select);
+                            MMVibrationManager.Haptic (HapticTypes.MediumImpact);
                             objectHeld = true;
                             heldObject = obj;
                             heldObject.depth = 20;
@@ -691,6 +694,8 @@ public class GameController : MonoBehaviour
         
         
         for(var i = 0; i < options.Count;i++){
+            Debug.Log(options[i]);
+
             Object o = options[i];
             if(o == null){
                 continue;
@@ -761,7 +766,7 @@ public class GameController : MonoBehaviour
     }
     void AddToGrid(Vector2Int pos, Object o, bool chains = true){
         
-        MMVibrationManager.Haptic (HapticTypes.LightImpact);
+        
         unlockAppear = false;
         o.position = pos;
         o.depth = 0;
@@ -845,7 +850,7 @@ public class GameController : MonoBehaviour
                 if(toBeDeleted.Contains(n_pos)){
                     continue;
                 }
-                if((grid[pos].colorNumber == grid[n_pos].colorNumber || (grid[n_pos].number == 0 || grid[n_pos].number == 1)) && grid[n_pos].locked == false){
+                if((grid[pos].colorNumber == grid[n_pos].colorNumber || (grid[n_pos].number == 0)) && grid[n_pos].locked == false){
                     continue;
                 }
                 if(grid[pos].colorNumber == grid[n_pos].colorNumber && grid[n_pos].locked && grid[n_pos].CanConnectToLocked(i)){
@@ -886,6 +891,7 @@ public class GameController : MonoBehaviour
                 }
             }
             Services.AudioManager.PlaySound(Services.AudioManager.pop,earnedPoints.Count);
+            MMVibrationManager.Haptic (HapticTypes.Success);
             Boop boop = grid[pos].gameObject.GetComponent<Boop>();
             if(ReferenceEquals(boop,null)== false){
                 Destroy(boop);
@@ -893,6 +899,7 @@ public class GameController : MonoBehaviour
             grid[pos].gameObject.AddComponent<WinAndDestroy>();
             grid[pos].isPopping = true;
             grid[pos].gameObject.GetComponent<WinAndDestroy>().depth = earnedPoints.Count;
+            
             RemoveObject(grid[pos]);
             if(inTutorial && tutorialStage == (int)TutorialStage.Popping){
                 tutorialStage++;

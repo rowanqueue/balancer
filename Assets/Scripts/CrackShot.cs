@@ -21,6 +21,7 @@ public class CrackShot : MonoBehaviour
             transform.position += ((Vector3)target-transform.position)*0.15f*(Time.deltaTime/(1f/60f));
             if(Vector2.Distance(target,(Vector2)transform.localPosition) < 0.05f){
                 atTarget = true;
+                
             }
         }else{
             transform.localScale += (Vector3.zero-transform.localScale)*0.1f*(Time.deltaTime/(1f/60f));

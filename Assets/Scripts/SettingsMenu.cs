@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Shapes;
+using MoreMountains.NiceVibrations;
 
 public class SettingsMenu : MonoBehaviour
 {
@@ -35,6 +36,7 @@ public class SettingsMenu : MonoBehaviour
                 active = !active;
                 clicked = true;
                 Services.AudioManager.PlaySound(Services.AudioManager.select);
+                MMVibrationManager.Haptic (HapticTypes.MediumImpact);
             }
             
         }

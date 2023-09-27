@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Shapes;
+using MoreMountains.NiceVibrations;
 
 public class UndoButton : MonoBehaviour
 {
@@ -38,6 +39,7 @@ public class UndoButton : MonoBehaviour
                     Services.GameController.Undo();
                     clicked = true;
                     Services.AudioManager.PlaySound(Services.AudioManager.select);
+                    MMVibrationManager.Haptic (HapticTypes.MediumImpact);
                 }
                 
             }
