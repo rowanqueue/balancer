@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Shapes;
 using TMPro;
+using MoreMountains.NiceVibrations;
 public enum TutorialStage{
     Grabing,
     Placing,
@@ -720,7 +721,7 @@ public class GameController : MonoBehaviour
                 tutorialStage++;
                 PlayerPrefs.SetInt("tutorial",tutorialStage);
             }
-            bigPoints-=1;
+            bigPoints-=0;
             PlayerPrefs.SetInt("Points",bigPoints);
             string lastTurn = turns[turns.Count-1];
             turns.RemoveAt(turns.Count-1);
@@ -732,7 +733,7 @@ public class GameController : MonoBehaviour
     }
     public void Restart(){
         if(waitForPopping == false){
-            bigPoints-=5;
+            bigPoints-=0;
             PlayerPrefs.SetInt("Points",bigPoints);
             PlayerPrefs.Save();
             tetrisBag.Clear();
@@ -760,7 +761,7 @@ public class GameController : MonoBehaviour
     }
     void AddToGrid(Vector2Int pos, Object o, bool chains = true){
         
-
+        MMVibrationManager.Haptic (HapticTypes.LightImpact);
         unlockAppear = false;
         o.position = pos;
         o.depth = 0;
